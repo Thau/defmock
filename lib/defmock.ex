@@ -1,18 +1,24 @@
 defmodule Defmock do
-  @moduledoc """
-  Documentation for Defmock.
-  """
+  use Application
 
-  @doc """
-  Hello world.
+  def start(_type, _args) do
+    Defmock.Supervisor.start_link
+  end
 
-  ## Examples
+  defmacro defmock(returns \\ []) do
+    quote do
+      name = Defmock.Namer.name()
+      |> String.to_atom
 
-      iex> Defmock.hello
-      :world
+      defmodule name do
+        def unquote(:"$handle_undefined_function")(function, args) do
+          {:ok, value} = unquote(returns)
+          |> Keyword.fetch(function)
+          value
+        end
+      end
 
-  """
-  def hello do
-    :world
+      name
+    end
   end
 end

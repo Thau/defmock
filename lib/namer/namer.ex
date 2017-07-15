@@ -19,6 +19,7 @@ defmodule Defmock.Namer do
     "Defmock1"
 
   """
+  @spec name() :: String.t()
   def name do
     Agent.get_and_update(__MODULE__, fn(n) ->
       {"#{@prefix}#{n}", n + 1}
