@@ -1,5 +1,9 @@
 defmodule Defmock do
+  @moduledoc """
+  Module to house our defmock macro.
+  """
   use Application
+  alias Defmock.Namer
 
   def start(_type, _args) do
     Defmock.Supervisor.start_link
@@ -7,7 +11,7 @@ defmodule Defmock do
 
   defmacro defmock(returns \\ []) do
     quote do
-      name = Defmock.Namer.name()
+      name = Namer.name()
       |> String.to_atom
 
       defmodule name do

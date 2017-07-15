@@ -30,7 +30,8 @@ defmodule Defmock.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false}
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:credo, "~> 0.8", only: [:dev, :test], runtime: false}
     ]
   end
 end

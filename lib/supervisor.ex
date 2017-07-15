@@ -1,4 +1,7 @@
 defmodule Defmock.Supervisor do
+  @moduledoc """
+  Supervisor to keep the application working.
+  """
   use Supervisor
 
   @name Defmock.Supervisor
