@@ -3,7 +3,7 @@ defmodule Defmock.Mixfile do
 
   def project do
     [app: :defmock,
-     version: "0.1.1",
+     version: "0.1.2",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -21,7 +21,7 @@ defmodule Defmock.Mixfile do
     ]
   end
 
-  defp aliases do
+  def aliases do
     [
       test: "test --no-start"
     ]
