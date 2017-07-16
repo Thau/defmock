@@ -31,4 +31,23 @@ defmodule Defmock.Test do
     assert module.mocked_function_1() == 2
     assert module.mocked_function_2() == "It's alive!"
   end
+
+  test "can define functions with arguments" do
+    module = defmock(mocked_function: 2)
+
+    assert module.mocked_function(2, 4, 6) == 2
+  end
+
+  test "can check that the functions were called" do
+    module = defmock(mocked_function: 2)
+    module.mocked_function()
+
+    assert module.called?(:mocked_function) == true
+  end
+
+  test "can check that functions were NOT called" do
+    module = defmock(mocked_function: 2)
+
+    assert module.called?(:mocked_function) == false
+  end
 end
