@@ -1,4 +1,4 @@
-# defmock [![Build Status](https://travis-ci.org/Thau/defmock.svg?branch=master)](https://travis-ci.org/Thau/defmock)
+# defmock [![Build Status](https://travis-ci.org/Thau/defmock.svg?branch=master)](https://travis-ci.org/Thau/defmock) [![codebeat badge](https://codebeat.co/badges/e84313fc-c2b7-4e72-b637-a292e906ed7f)](https://codebeat.co/projects/github-com-thau-defmock-master)
 
 Easy mock generation for Elixir.
 
