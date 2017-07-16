@@ -1,4 +1,4 @@
-# defmock
+# defmock [![Build Status](https://travis-ci.org/Thau/defmock.svg?branch=master)](https://travis-ci.org/Thau/defmock)
 
 Easy mock generation for Elixir.
 
