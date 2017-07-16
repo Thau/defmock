@@ -4,13 +4,11 @@ defmodule Defmock.Supervisor do
   """
   use Supervisor
 
-  @name Defmock.Supervisor
-
   def start_link do
-    Supervisor.start_link(__MODULE__, :ok, name: @name)
+    Supervisor.start_link(__MODULE__, [])
   end
 
-  def init(:ok) do
+  def init([]) do
     children = [
       worker(Defmock.Namer, [])
     ]

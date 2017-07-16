@@ -3,11 +3,10 @@ defmodule Defmock.Mixfile do
 
   def project do
     [app: :defmock,
-     version: "0.1.0",
+     version: "0.1.1",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     mod: {Defmock, []},
      deps: deps()]
   end
 
@@ -16,7 +15,16 @@ defmodule Defmock.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger]]
+    [
+      mod: {Defmock, []},
+      extra_applications: [:logger]
+    ]
+  end
+
+  defp aliases do
+    [
+      test: "test --no-start"
+    ]
   end
 
   # Dependencies can be Hex packages:

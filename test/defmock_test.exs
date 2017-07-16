@@ -4,8 +4,8 @@ defmodule Defmock.Test do
 
   doctest Defmock
 
-  setup_all do
-    {:ok, _} = Defmock.Namer.start_link
+  setup do
+    Application.ensure_all_started(:defmock)
     :ok
   end
 

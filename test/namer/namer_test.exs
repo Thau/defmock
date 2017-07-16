@@ -3,10 +3,8 @@ defmodule Defmock.Test.Namer do
 
   alias Defmock.Namer
 
-  doctest Defmock.Namer
-
   setup do
-    {:ok, _} = Namer.start_link
+    Namer.start_link
     :ok
   end
 
