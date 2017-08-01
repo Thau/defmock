@@ -9,7 +9,7 @@ Add `defmock` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:defmock, github: "thau/defmock", tag: "v0.1.1"}
+    {:defmock, github: "thau/defmock", tag: "v0.2.0"}
   ]
 end
 ```
@@ -27,6 +27,13 @@ ExUnit.start()
 defmodule TestedModule do
     def function_with_external_api(external_api) do
       case external_api.call_me() do
+        %{status_code: 200} -> :ok
+        %{status_code: 404} -> :not_found
+      end
+    end
+
+    def function_with_external_api_and_args(external_api) do
+      case external_api.call_me(:foo, :bar, baz: 2, qux: 4) do
         %{status_code: 200} -> :ok
         %{status_code: 404} -> :not_found
       end
@@ -51,6 +58,12 @@ defmodule Test do
     external_api = defmock(call_me: %{status_code: 200})
     TestedModule.function_with_external_api(external_api)
     assert external_api.called?(:call_me)
+  end
+
+  test "ensure that external API is called with the right arguments" do
+    external_api = defmock(call_me: %{status_code: 200})
+    TestedModule.function_with_external_api_and_args(external_api)
+    assert external_api.called_with?(:call_me, :foo, :bar, baz: 2, qux: 4)
   end
 end
 ```

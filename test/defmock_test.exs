@@ -74,8 +74,8 @@ defmodule Defmock.Test do
 
   test "can check that a function was called with named arguments without order" do
     module = defmock(mocked_function: 2)
-    module.mocked_function(arg1: 4, arg2: 2)
+    module.mocked_function(4, arg1: 4, arg2: 2)
 
-    assert module.called_with?(:mocked_function, arg2: 2, arg1: 4)
+    assert module.called_with?(:mocked_function, 4, arg2: 2, arg1: 4)
   end
 end
