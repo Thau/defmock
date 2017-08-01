@@ -55,6 +55,27 @@ defmodule Defmock.Test do
     module = defmock(mocked_function: 2)
     module.mocked_function(:arg1, :arg2)
 
-    assert module.called_with?(:mocked_function, [:arg1, :arg2])
+    assert module.called_with?(:mocked_function, :arg1, :arg2)
+  end
+
+  test "can check that a function was called with named arguments" do
+    module = defmock(mocked_function: 2)
+    module.mocked_function(arg1: 4, arg2: 2)
+
+    assert module.called_with?(:mocked_function, arg1: 4, arg2: 2)
+  end
+
+  test "can check that a function was called with a mixture of normal and named arguments" do
+    module = defmock(mocked_function: 2)
+    module.mocked_function(4, arg2: 2)
+
+    assert module.called_with?(:mocked_function, 4, arg2: 2)
+  end
+
+  test "can check that a function was called with named arguments without order" do
+    module = defmock(mocked_function: 2)
+    module.mocked_function(arg1: 4, arg2: 2)
+
+    assert module.called_with?(:mocked_function, arg2: 2, arg1: 4)
   end
 end

@@ -21,8 +21,18 @@ defmodule Defmock do
           Agent.start_link(fn -> %{} end, name: __MODULE__)
         end
 
+        def unquote(:"$handle_undefined_function")(:called_with?, [function|args]) do
+          contains_named_parameters = contains_named_parameters?(args)
+
+          case Enum.reverse(args) do
+            [head|tail] when contains_named_parameters ->
+              called_with?(function, Enum.reverse(tail), Enum.sort(head))
+            _ ->
+              called_with?(function, args, [])
+          end
+        end
+
         def unquote(:"$handle_undefined_function")(function, args) do
-          # IO.inspect args
           {:ok, value} = unquote(returns)
           |> Keyword.fetch(function)
 
@@ -38,18 +48,36 @@ defmodule Defmock do
           num_calls > 0
         end
 
-        def called_with?(function, called_args) do
+        defp contains_named_parameters?([]), do: false
+        defp contains_named_parameters?(args) do
+          args |> Enum.reverse() |> hd() |> Keyword.keyword?()
+        end
+
+        defp called_with?(function, normal_args, []), do: called_with?(function, normal_args)
+        defp called_with?(function, [], keyword_args), do: called_with?(function, [keyword_args])
+        defp called_with?(function, normal_args, keyword_args), do: called_with?(function, normal_args ++ [keyword_args])
+
+        defp called_with?(function, mixed_args) do
           %{args: args} = get_function_calls(function)
 
           args
-          |> Enum.member?(called_args)
+          |> Enum.member?(mixed_args)
         end
 
         defp update_function_calls(calls, function, args) do
           %{num_calls: num_calls, args: prev_args} = calls
           |> Map.get(function, @default_calls)
 
-          Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
+          contains_named_parameters = contains_named_parameters?(args)
+
+          case Enum.reverse(args) do
+            [head|[]] when contains_named_parameters ->
+              Map.put(calls, function, %{num_calls: num_calls + 1, args: [[Enum.sort(head)]|prev_args]})
+            [head|tail] when contains_named_parameters ->
+              Map.put(calls, function, %{num_calls: num_calls + 1, args: [tail ++ [Enum.sort(head)]|prev_args]})
+            _ ->
+              Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
+          end
         end
 
         defp get_function_calls(function) do
