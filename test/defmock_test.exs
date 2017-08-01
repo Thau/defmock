@@ -50,4 +50,11 @@ defmodule Defmock.Test do
 
     assert module.called?(:mocked_function) == false
   end
+
+  test "can check that a function was called with certain arguments" do
+    module = defmock(mocked_function: 2)
+    module.mocked_function(:arg1, :arg2)
+
+    assert module.called_with?(:mocked_function, [:arg1, :arg2])
+  end
 end

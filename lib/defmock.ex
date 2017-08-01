@@ -20,25 +20,38 @@ defmodule Defmock do
         end
 
         def unquote(:"$handle_undefined_function")(function, args) do
+          # IO.inspect args
           {:ok, value} = unquote(returns)
           |> Keyword.fetch(function)
 
           Agent.get_and_update(__MODULE__, fn(calls) ->
-            {nil, update_function_calls(calls, function)}
+            {nil, update_function_calls(calls, function, args)}
           end)
 
           value
         end
 
         def called?(function) do
-          Agent.get(__MODULE__, &Map.get(&1, function, 0)) > 0
+          %{num_calls: num_calls} = Agent.get(__MODULE__, &get_function_calls(&1, function))
+          num_calls > 0
         end
 
-        defp update_function_calls(calls, function) do
-          num_calls = calls
-          |> Map.get(function, 0)
+        def called_with?(function, called_args) do
+          %{args: args} = Agent.get(__MODULE__, &get_function_calls(&1, function))
 
-          Map.put(calls, function, num_calls + 1)
+          args
+          |> Enum.member?(called_args)
+        end
+
+        defp update_function_calls(calls, function, args) do
+          %{num_calls: num_calls, args: prev_args} = calls
+          |> get_function_calls(function)
+
+          Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
+        end
+
+        defp get_function_calls(calls, function) do
+          Map.get(calls, function, %{num_calls: 0, args: []})
         end
       end
 
