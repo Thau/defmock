@@ -22,10 +22,10 @@ defmodule Defmock do
         end
 
         def unquote(:"$handle_undefined_function")(:called_with?, [function|args]) do
-          contains_named_parameters = contains_named_parameters?(args)
+          contains_named_args = contains_named_args?(args)
 
           case Enum.reverse(args) do
-            [head|tail] when contains_named_parameters ->
+            [head|tail] when contains_named_args ->
               called_with?(function, Enum.reverse(tail), Enum.sort(head))
             _ ->
               called_with?(function, args, [])
@@ -48,8 +48,8 @@ defmodule Defmock do
           num_calls > 0
         end
 
-        defp contains_named_parameters?([]), do: false
-        defp contains_named_parameters?(args) do
+        defp contains_named_args?([]), do: false
+        defp contains_named_args?(args) do
           args |> Enum.reverse() |> hd() |> Keyword.keyword?()
         end
 
@@ -68,12 +68,12 @@ defmodule Defmock do
           %{num_calls: num_calls, args: prev_args} = calls
           |> Map.get(function, @default_calls)
 
-          contains_named_parameters = contains_named_parameters?(args)
+          contains_named_args = contains_named_args?(args)
 
           case Enum.reverse(args) do
-            [head|[]] when contains_named_parameters ->
+            [head|[]] when contains_named_args ->
               Map.put(calls, function, %{num_calls: num_calls + 1, args: [[Enum.sort(head)]|prev_args]})
-            [head|tail] when contains_named_parameters ->
+            [head|tail] when contains_named_args ->
               Map.put(calls, function, %{num_calls: num_calls + 1, args: [tail ++ [Enum.sort(head)]|prev_args]})
             _ ->
               Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
