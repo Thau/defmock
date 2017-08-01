@@ -25,8 +25,8 @@ defmodule Defmock do
           contains_named_args = contains_named_args?(args)
 
           case Enum.reverse(args) do
-            [head|tail] when contains_named_args ->
-              called_with?(function, Enum.reverse(tail), Enum.sort(head))
+            [named_args|normal_args] when contains_named_args ->
+              called_with?(function, Enum.reverse(normal_args), Enum.sort(named_args))
             _ ->
               called_with?(function, args, [])
           end
@@ -71,10 +71,10 @@ defmodule Defmock do
           contains_named_args = contains_named_args?(args)
 
           case Enum.reverse(args) do
-            [head|[]] when contains_named_args ->
-              Map.put(calls, function, %{num_calls: num_calls + 1, args: [[Enum.sort(head)]|prev_args]})
-            [head|tail] when contains_named_args ->
-              Map.put(calls, function, %{num_calls: num_calls + 1, args: [tail ++ [Enum.sort(head)]|prev_args]})
+            [named_args|[]] when contains_named_args ->
+              Map.put(calls, function, %{num_calls: num_calls + 1, args: [[Enum.sort(named_args)]|prev_args]})
+            [named_args|normal_args] when contains_named_args ->
+              Map.put(calls, function, %{num_calls: num_calls + 1, args: [normal_args ++ [Enum.sort(named_args)]|prev_args]})
             _ ->
               Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
           end
