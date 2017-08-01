@@ -15,6 +15,8 @@ defmodule Defmock do
       |> String.to_atom
 
       defmodule name do
+        @default_calls %{num_calls: 0, args: []}
+
         def start_link do
           Agent.start_link(fn -> %{} end, name: __MODULE__)
         end
@@ -32,12 +34,12 @@ defmodule Defmock do
         end
 
         def called?(function) do
-          %{num_calls: num_calls} = Agent.get(__MODULE__, &get_function_calls(&1, function))
+          %{num_calls: num_calls} = get_function_calls(function)
           num_calls > 0
         end
 
         def called_with?(function, called_args) do
-          %{args: args} = Agent.get(__MODULE__, &get_function_calls(&1, function))
+          %{args: args} = get_function_calls(function)
 
           args
           |> Enum.member?(called_args)
@@ -45,13 +47,13 @@ defmodule Defmock do
 
         defp update_function_calls(calls, function, args) do
           %{num_calls: num_calls, args: prev_args} = calls
-          |> get_function_calls(function)
+          |> Map.get(function, @default_calls)
 
           Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
         end
 
-        defp get_function_calls(calls, function) do
-          Map.get(calls, function, %{num_calls: 0, args: []})
+        defp get_function_calls(function) do
+          Agent.get(__MODULE__, &Map.get(&1, function, @default_calls))
         end
       end
 
