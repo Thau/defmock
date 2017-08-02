@@ -4,6 +4,7 @@ defmodule Defmock do
   """
   use Application
   alias Defmock.Namer
+  alias Defmock.Args
 
   def start(_type, _args) do
     Defmock.Supervisor.start_link
@@ -22,14 +23,11 @@ defmodule Defmock do
         end
 
         def unquote(:"$handle_undefined_function")(:called_with?, [function|args]) do
-          contains_named_args = contains_named_args?(args)
+          split_args = Args.split_args(args)
+          %{args: args} = get_function_calls(function)
 
-          case Enum.reverse(args) do
-            [named_args|normal_args] when contains_named_args ->
-              called_with?(function, Enum.reverse(normal_args), Enum.sort(named_args))
-            _ ->
-              called_with?(function, args, [])
-          end
+          args
+          |> Enum.member?(split_args)
         end
 
         def unquote(:"$handle_undefined_function")(function, args) do
@@ -48,36 +46,12 @@ defmodule Defmock do
           num_calls > 0
         end
 
-        defp contains_named_args?([]), do: false
-        defp contains_named_args?(args) do
-          args |> Enum.reverse() |> hd() |> Keyword.keyword?()
-        end
-
-        defp called_with?(function, normal_args, []), do: called_with?(function, normal_args)
-        defp called_with?(function, [], keyword_args), do: called_with?(function, [keyword_args])
-        defp called_with?(function, normal_args, keyword_args), do: called_with?(function, normal_args ++ [keyword_args])
-
-        defp called_with?(function, mixed_args) do
-          %{args: args} = get_function_calls(function)
-
-          args
-          |> Enum.member?(mixed_args)
-        end
-
         defp update_function_calls(calls, function, args) do
           %{num_calls: num_calls, args: prev_args} = calls
           |> Map.get(function, @default_calls)
 
-          contains_named_args = contains_named_args?(args)
-
-          case Enum.reverse(args) do
-            [named_args|[]] when contains_named_args ->
-              Map.put(calls, function, %{num_calls: num_calls + 1, args: [[Enum.sort(named_args)]|prev_args]})
-            [named_args|normal_args] when contains_named_args ->
-              Map.put(calls, function, %{num_calls: num_calls + 1, args: [normal_args ++ [Enum.sort(named_args)]|prev_args]})
-            _ ->
-              Map.put(calls, function, %{num_calls: num_calls + 1, args: [args|prev_args]})
-          end
+          split_args = Args.split_args(args)
+          Map.put(calls, function, %{num_calls: num_calls + 1, args: [split_args|prev_args]})
         end
 
         defp get_function_calls(function) do

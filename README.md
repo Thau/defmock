@@ -9,7 +9,7 @@ Add `defmock` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:defmock, github: "thau/defmock", tag: "v0.2.0"}
+    {:defmock, github: "thau/defmock", tag: "v0.2.1"}
   ]
 end
 ```
