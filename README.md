@@ -14,30 +14,23 @@ def deps do
 end
 ```
 
-Then ensure that the application is running in your `test_helper.exs`
-
-```elixir
-Application.ensure_all_started(:defmock)
-ExUnit.start()
-```
-
 ## Usage
 
 ```elixir
 defmodule TestedModule do
-    def function_with_external_api(external_api) do
-      case external_api.call_me() do
-        %{status_code: 200} -> :ok
-        %{status_code: 404} -> :not_found
-      end
+  def function_with_external_api(external_api) do
+    case external_api.call_me() do
+      %{status_code: 200} -> :ok
+      %{status_code: 404} -> :not_found
     end
+  end
 
-    def function_with_external_api_and_args(external_api) do
-      case external_api.call_me(:foo, :bar, baz: 2, qux: 4) do
-        %{status_code: 200} -> :ok
-        %{status_code: 404} -> :not_found
-      end
+  def function_with_external_api_and_args(external_api) do
+    case external_api.call_me(:foo, :bar, baz: 2, qux: 4) do
+      %{status_code: 200} -> :ok
+      %{status_code: 404} -> :not_found
     end
+  end
 end
 
 defmodule Test do
@@ -63,7 +56,13 @@ defmodule Test do
   test "ensure that external API is called with the right arguments" do
     external_api = defmock(call_me: %{status_code: 200})
     TestedModule.function_with_external_api_and_args(external_api)
-    assert external_api.called_with?(:call_me, :foo, :bar, baz: 2, qux: 4)
+    assert external_api.called_with?(:call_me, [:foo, :bar, baz: 2, qux: 4])
+  end
+
+  test "ensure that external API is called with some matching arguments" do
+    external_api = defmock(call_me: %{status_code: 200})
+    TestedModule.function_with_external_api_and_args(external_api)
+    assert external_api.called_with_match?(:call_me, [:foo, :'_', [baz: :'_', qux: 4])
   end
 end
 ```

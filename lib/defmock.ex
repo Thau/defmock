@@ -2,64 +2,47 @@ defmodule Defmock do
   @moduledoc """
   Module to house our defmock macro.
   """
-  use Application
-  alias Defmock.Namer
-  alias Defmock.Args
 
-  def start(_type, _args) do
-    Defmock.Supervisor.start_link
-  end
+  @ets_opts [:public, :bag, write_concurrency: false, read_concurrency: true]
+
+  def table!(name), do: :ets.new(:defmock, @ets_opts)
+
+  def name(%Macro.Env{function: {function, _}}), do: :"Defmock#{function}#{:erlang.unique_integer([:positive])}"
+  def name(%Macro.Env{function: nil}), do: :"Defmock#{:erlang.unique_integer([:positive])}"
 
   defmacro defmock(returns \\ []) do
     quote do
-      name = Namer.name()
-      |> String.to_atom
+      name = name(__ENV__)
+      table_id = table!(name)
 
       defmodule name do
-        @default_calls %{num_calls: 0, args: []}
-
-        def start_link do
-          Agent.start_link(fn -> %{} end, name: __MODULE__)
-        end
-
-        def unquote(:"$handle_undefined_function")(:called_with?, [function|args]) do
-          split_args = Args.split_args(args)
-          %{args: args} = get_function_calls(function)
-
-          args
-          |> Enum.member?(split_args)
-        end
+        @moduledoc false
+        @table_id table_id
 
         def unquote(:"$handle_undefined_function")(function, args) do
-          {:ok, value} = unquote(returns)
-          |> Keyword.fetch(function)
+          {:ok, value} = unquote(returns) |> Keyword.fetch(function)
 
-          Agent.get_and_update(__MODULE__, fn(calls) ->
-            {nil, update_function_calls(calls, function, args)}
-          end)
+          :ets.insert @table_id, {function, args, __MODULE__}
 
           value
         end
 
-        def called?(function) do
-          %{num_calls: num_calls} = get_function_calls(function)
-          num_calls > 0
-        end
+        def called?(function) when is_atom(function), do: calls_of(function) |> called?
+        def called?([_|_]), do: true
+        def called?(_), do: false
 
-        defp update_function_calls(calls, function, args) do
-          %{num_calls: num_calls, args: prev_args} = calls
-          |> Map.get(function, @default_calls)
+        def called_with?(function, args) when is_atom(function), do: function |> calls_of |> called_with?(args)
+        def called_with?([_|_] = calls, args), do: calls |> Enum.map(&elem(&1, 1)) |> Enum.any?(&(&1 == args))
+        def called_with?([], _args), do: false
 
-          split_args = Args.split_args(args)
-          Map.put(calls, function, %{num_calls: num_calls + 1, args: [split_args|prev_args]})
-        end
+        def called_with_match?(function, pattern), do: called_with_match?(matches_of(function, pattern))
+        def called_with_match?([_|_]), do: true
+        def called_with_match?(_), do: false
 
-        defp get_function_calls(function) do
-          Agent.get(__MODULE__, &Map.get(&1, function, @default_calls))
-        end
+        defp calls_of(function), do: :ets.lookup(@table_id, function)
+        defp matches_of(function, pattern), do: :ets.match_object(@table_id, {function, pattern, :'_'})
       end
 
-      name.start_link
       name
     end
   end
